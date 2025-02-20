@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\Rol\RolesController;
 
 Route::group([
     'prefix' => 'auth',
@@ -15,3 +16,5 @@ Route::group([
     Route::post('/regis', [AuthController::class, 'regis']);
 
 });
+
+Route::resource("roles", RolesController::class);
