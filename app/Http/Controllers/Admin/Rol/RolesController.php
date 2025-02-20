@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Admin\Rol;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RolesController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostrar lista de roles.
      */
     public function index(Request $request)
     {
@@ -19,82 +20,97 @@ class RolesController extends Controller
 
         return response()->json([
             "roles" => $roles->map(function($rol) {
-                return[
-                    "id" => $rol,
+                return [
+                    "id" => $rol->id,
                     "name" => $rol->name,
-                    "permission" =>$rol->permission,
-                    "created_at" =>$rol->created_at->format("Y-m-d h:i:s")
+                    "permissions" => $rol->permissions->pluck('name'),
+                    "created_at" => $rol->created_at->format("Y-m-d h:i:s")
                 ];
             }),
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crear un nuevo rol.
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+            'permissions' => 'array|min:1',
+            'permissions.*' => 'string|exists:permissions,name'
+        ]);
 
-        $is_role = Role::where("name",$request->name)->first();
-
-        if($is_role){
-            return response()->json([
-                "message" => 403,
-                "message_text" => "El nombre el rol ya existe"
+        try {
+            $role = Role::create([
+                'guard_name' => 'api',
+                'name' => $request->name,
             ]);
+
+            foreach($request->permissions as $permission){
+                $role->givePermissionTo($permission);
+            }
+
+            return response()->json([
+                "message" => "Rol creado correctamente",
+                "role" => $role
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Error interno del servidor",
+                "error" => $e->getMessage()
+            ], 500);
         }
-        $role = Role::create([
-            'guard_name' => 'api',
-            'name' => $request->name,
-        ]);
-        foreach($request->permisions as $key => $permision){
-            $role->givePermissionTo('publish articles');
-        }
-        return response()->json([
-            "message" => 200,
-        ]);
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualizar un rol existente.
      */
     public function update(Request $request, string $id)
     {
-        $is_role = Role::where("id","<>",$id)->where("name",$request->name)->first();
-
-        if($is_role){
-            return response()->json([
-                "message" => 403,
-                "message_text" => "El nombre el rol ya existe"
-            ]);
-        }
-        $role = Role::findOrFail($id);
-
-        $role->update($request->all());
-        $role->syncPermissions($request->permisions);
-        return response()->json([
-            "message" => 200,
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'permissions' => 'array|min:1',
+            'permissions.*' => 'string|exists:permissions,name'
         ]);
+
+        try {
+            $role = Role::findOrFail($id);
+
+            $role->update(['name' => $request->name]);
+            $role->syncPermissions($request->permissions);
+
+            return response()->json([
+                "message" => "Rol actualizado correctamente",
+                "role" => $role
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Error al actualizar el rol",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar un rol.
      */
     public function destroy(string $id)
     {
-        $role = Role::findOrFail($id);
-        $role->delete();
-        return response()->json([
-            "message" => 200,
-        ]);
+        try {
+            $role = Role::findOrFail($id);
+            $role->delete();
+            return response()->json([
+                "message" => "Rol eliminado correctamente"
+            ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Error al eliminar el rol",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 }

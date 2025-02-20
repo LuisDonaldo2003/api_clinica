@@ -17,4 +17,9 @@ Route::group([
 
 });
 
-Route::resource("roles", RolesController::class);
+Route::group([
+    'middleware' => 'auth:api',
+    // 'middleware' => ['role:admin','permission:publish articles'],
+], function ($router) {
+    Route::resource("roles", RolesController::class);
+});
