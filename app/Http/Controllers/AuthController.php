@@ -118,11 +118,22 @@ class AuthController extends Controller
      */
     protected function respondWithToken($token)
     {
+
+        $permissions = auth('api')->user()->getAllPermissions()->map(function($perm){
+            return $perm->name;
+        });
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user(),
+            'user' => [
+                "name" => auth('api')->user()->name,
+                "surname" => auth('api')->user()->surname,
+                // "avatar" => auth('api')->user()->avatar,
+                "email" => auth('api')->user()->email,
+                "roles" => auth('api')->user()->getRoleNames(),
+                "permissions" => $permissions,
+            ],
         ]);
     }
 }
