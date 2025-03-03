@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\Rol\RolesController;
+use App\Http\Controllers\Admin\Staff\StaffsController;
 
 Route::group([
     'prefix' => 'auth',
@@ -22,4 +23,9 @@ Route::group([
     // 'middleware' => ['role:admin','permission:publish articles'],
 ], function ($router) {
     Route::resource("roles", RolesController::class);
+
+    Route::get("staffs/config", [StaffsController::class, 'config']);
+    Route::post("staffs/{id}", [StaffsController::class,'update']);
+    Route::resource("staffs", StaffsController::class);
+
 });
