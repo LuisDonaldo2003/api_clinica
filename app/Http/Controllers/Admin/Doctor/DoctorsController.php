@@ -1,18 +1,22 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Staff;
+namespace App\Http\Controllers\Admin\Doctor;
 
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\Doctor\Specialitie;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Doctor\DoctorScheduleDay;
 use App\Http\Resources\User\UserResource;
+use App\Models\Doctor\DoctorScheduleHour;
 use App\Http\Resources\User\UserCollection;
+use App\Models\Doctor\DoctorScheduleJoinHour;
 
-class StaffsController extends Controller
+class DoctorsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +31,7 @@ class StaffsController extends Controller
                         // ->orWhere("email","like","%".$search."%")
                         ->orderBy("id","desc")
                         ->whereHas("roles",function($q){
-                            $q->where("name","not like","%DOCTOR%");
+                            $q->where("name","like","%DOCTOR%");
                         })
                         ->get();
 
@@ -37,18 +41,44 @@ class StaffsController extends Controller
     }
 
     public function config() {
-        $roles = Role::where("name","not like","%DOCTOR%")->get();
+        $roles = Role::where("name","like","%DOCTOR%")->get();
 
+        $specialities = Specialitie::where("state",1)->get();
+
+        $hours_days = collect([]);
+
+        $doctor_schedule_hours = DoctorScheduleHour::all();
+        foreach ($doctor_schedule_hours->groupBy("hour") as $key => $schedule_hour) {
+            $hours_days->push([
+                "hour" => $key,
+                "format_hour" => Carbon::parse(date("Y-m-d").' '.$key.":00:00")->format("h:i A"),
+                "items" => $schedule_hour->map(function($hour_item) {
+                    // Y-m-d h:i:s 2023-10-2 00:13:30 -> 12:13:20
+                    return [
+                        "id" => $hour_item->id,
+                        "hour_start" => $hour_item->hour_start,
+                        "hour_end" => $hour_item->hour_end,
+                        "format_hour_start" => Carbon::parse(date("Y-m-d").' '.$hour_item->hour_start)->format("h:i A"),
+                        "format_hour_end" => Carbon::parse(date("Y-m-d").' '.$hour_item->hour_end)->format("h:i A"),
+                        "hour" => $hour_item->hour,
+                    ];
+                }),
+            ]);
+        }
         return response()->json([
-            "roles" => $roles
+            "roles" => $roles,
+            "specialities" => $specialities,
+            "hours_days" => $hours_days,
         ]);
     }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        
+        $schedule_hours = json_decode($request->schedule_hours,1);
+
         $users_is_valid = User::where("email",$request->email)->first();
 
         if($users_is_valid){
@@ -76,6 +106,24 @@ class StaffsController extends Controller
 
         $role = Role::findOrFail($request->role_id);
         $user->assignRole($role);
+
+        // ALMACENAR LA DISPONIBILIDAD DE HORARIO DEL DOCTOR
+
+        foreach ($schedule_hours as $key => $schedule_hour) {
+            if(sizeof($schedule_hour["children"]) > 0){
+                $schedule_day = DoctorScheduleDay::create([
+                    "user_id" => $user->id,
+                    "day" => $schedule_hour["day_name"],
+                ]);
+    
+                foreach ($schedule_hour["children"] as $children) {
+                    DoctorScheduleJoinHour::create([
+                        "doctor_schedule_day_id" => $schedule_day->id,
+                        "doctor_schedule_hour_id" => $children["item"]["id"],
+                    ]);
+                }
+            }
+        }
         return response()->json([
             "message" => 200
         ]);
@@ -90,7 +138,7 @@ class StaffsController extends Controller
         $user = User::findOrFail($id);
 
         return response()->json([
-            "user" => UserResource::make($user), 
+            "doctor" => UserResource::make($user), 
         ]);
     }
 
@@ -99,6 +147,8 @@ class StaffsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $schedule_hours = json_decode($request->schedule_hours,1);
+        
         $users_is_valid = User::where("id","<>",$id)->where("email",$request->email)->first();
 
         if($users_is_valid){
@@ -136,9 +186,31 @@ class StaffsController extends Controller
             $role_new = Role::findOrFail($request->role_id);
             $user->assignRole($role_new);
         }
+
+        // ALMACENAR LA DISPONIBILIDAD DE HORARIO DEL DOCTOR
+        foreach ($user->schedule_days as $key => $schedule_day) {
+            $schedule_day->delete();
+        }
+
+        foreach ($schedule_hours as $key => $schedule_hour) {
+            if(sizeof($schedule_hour["children"]) > 0){
+                $schedule_day = DoctorScheduleDay::create([
+                    "user_id" => $user->id,
+                    "day" => $schedule_hour["day_name"],
+                ]);
+    
+                foreach ($schedule_hour["children"] as $children) {
+                    DoctorScheduleJoinHour::create([
+                        "doctor_schedule_day_id" => $schedule_day->id,
+                        "doctor_schedule_hour_id" => $children["item"]["id"],
+                    ]);
+                }
+            }
+        }
         return response()->json([
             "message" => 200
         ]);
+
     }
 
     /**
@@ -147,9 +219,6 @@ class StaffsController extends Controller
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
-        if($user->avatar){
-            Storage::delete($user->avatar);
-        }
         $user->delete();
         return response()->json([
             "message" => 200

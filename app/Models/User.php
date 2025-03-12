@@ -3,8 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Doctor\Specialitie;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Doctor\DoctorScheduleDay;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,6 +16,7 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
     use HasRoles;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -33,7 +37,7 @@ class User extends Authenticatable implements JWTSubject
         'designation',
         'address',
         'avatar',
-
+        'specialitie_id',
     ];
 
     /**
@@ -77,5 +81,13 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function specialitie() {
+        return $this->belongsTo(Specialitie::class);
+    }
+
+    public function schedule_days() {
+        return $this->hasMany(DoctorScheduleDay::class);
     }
 }
