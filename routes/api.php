@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Staff\StaffsController;
 use App\Http\Controllers\Admin\Doctor\DoctorsController;
 use App\Http\Controllers\Admin\Doctor\SpecialityController;
 use App\Http\Controllers\Appointment\AppointmentController;
+use App\Http\Controllers\Appointment\AppointmentPayController;
 
 Route::group([
     'prefix' => 'auth',
@@ -46,5 +47,7 @@ Route::group([
     Route::get("appointmet/patient",[AppointmentController::class,"query_patient"]);
     Route::post("appointmet/filter",[AppointmentController::class,"filter"]);
     Route::resource("appointmet",AppointmentController::class);
+    //
+    Route::resource("appointmet-pay",AppointmentPayController::class);
 });
 
