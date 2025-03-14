@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Doctor\DoctorsController;
 use App\Http\Controllers\Admin\Doctor\SpecialityController;
 use App\Http\Controllers\Appointment\AppointmentController;
 use App\Http\Controllers\Appointment\AppointmentPayController;
+use App\Http\Controllers\Appointment\AppointmentAttentioncontroller;
 
 Route::group([
     'prefix' => 'auth',
@@ -46,8 +47,11 @@ Route::group([
     Route::get("appointmet/config",[AppointmentController::class,"config"]);
     Route::get("appointmet/patient",[AppointmentController::class,"query_patient"]);
     Route::post("appointmet/filter",[AppointmentController::class,"filter"]);
+    Route::post("appointmet/calendar",[AppointmentController::class,"calendar"]);
     Route::resource("appointmet",AppointmentController::class);
     //
     Route::resource("appointmet-pay",AppointmentPayController::class);
+    Route::resource("appointmet-attention",AppointmentAttentioncontroller::class);
+
 });
 

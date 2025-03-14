@@ -63,6 +63,7 @@ class AppointmentResource extends JsonResource
             ]: NULL,
             "amount" => $this->resource->amount,
             "status_pay" => $this->resource->status_pay,
+            "status" => $this->resource->status,
             "created_at" => $this->resource->created_at->format("Y-m-d h:i A"),
         ];
     }
