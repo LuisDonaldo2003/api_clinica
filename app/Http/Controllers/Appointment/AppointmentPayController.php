@@ -126,32 +126,18 @@ class AppointmentPayController extends Controller
         ]);
     }
 
-    
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // Encuentra el pago que se va a eliminar
         $appointment_pay = AppointmentPay::findOrFail($id);
-    
-        // Obtén la cita asociada al pago
-        $appointment = Appointment::findOrFail($appointment_pay->appointment_id);
-    
-        // Elimina el pago
+
+        $apppointment = Appointment::findOrFail($appointment_pay->appointment_id);
+        $apppointment->update(["status_pay" => 2]);
+
         $appointment_pay->delete();
-    
-        // Recalcula el monto total pagado después de eliminar el pago
-        $sum_total_pays = AppointmentPay::where("appointment_id", $appointment->id)->sum("amount");
-    
-        // Actualiza el estado de la cita en función del monto total pagado
-        if ($sum_total_pays >= $appointment->amount) {
-            $appointment->update(["status_pay" => 1]); // PAGADO
-        } else {
-            $appointment->update(["status_pay" => 2]); // DEUDA
-        }
-    
+
         return response()->json([
             "message" => 200,
         ]);

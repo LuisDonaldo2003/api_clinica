@@ -122,14 +122,15 @@ class StaffsController extends Controller
             $request->request->add(["password" => bcrypt($request->password)]);
         }
 
-        $date_clean = preg_replace('/\(.*\)|[A-Z]{3}-\d{4}/', '', $request->birth_date);
-
-        $request->request->add(["birth_date" => Carbon::parse($date_clean)->format("Y-m-d h:i:s")]);
+        if($request->birth_date){
+            $date_clean = preg_replace('/\(.*\)|[A-Z]{3}-\d{4}/', '', $request->birth_date);
+            $request->request->add(["birth_date" => Carbon::parse($date_clean)->format("Y-m-d h:i:s")]);
+        }
 
         // $request->request->add(["birth_date" => Carbon::parse($request->birth_date, 'GMT')->format("Y-m-d h:i:s")]);
         $user->update($request->all());
 
-        if($request->role_id != $user->roles()->first()->id){
+        if($request->role_id && $request->role_id != $user->roles()->first()->id){
             $role_old = Role::findOrFail($user->roles()->first()->id);
             $user->removeRole($role_old);
     

@@ -28,6 +28,12 @@ class AppointmentAttentioncontroller extends Controller
         
         $request->request->add(["receta_medica" => json_encode($request->medical)]);
         if($appointment_attention){
+
+            if(!$appointment->date_attention){
+                $appointment->update(["status" => 2,
+                "date_attention" => now()]);
+            }
+
             $appointment_attention->update($request->all());
         }else{
             AppointmentAttention::create($request->all());
