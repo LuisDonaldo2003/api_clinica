@@ -9,6 +9,7 @@ use App\Models\Doctor\Specialitie;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Redis;
 use App\Models\Appointment\Appointment;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Doctor\DoctorScheduleDay;
@@ -43,49 +44,59 @@ class DoctorsController extends Controller
     }
 
     public function profile($id){
-        $user = User::findOrFail($id);
-    
-        $num_appointment = Appointment::where("doctor_id",$id)->count();
-        $money_of_appointments = Appointment::where("doctor_id",$id)->sum("amount");
-        $num_appointment_pendings = Appointment::where("doctor_id",$id)->where("status",1)->count();
 
-        $appointment_pendings = Appointment::where("doctor_id",$id)->where("status",1)->get();
-        $appointments = Appointment::where("doctor_id",$id)->get();
-        return response()->json([
-            "num_appointment" => $num_appointment,
-            "money_of_appointments" => $money_of_appointments,
-            "num_appointment_pendings" => $num_appointment_pendings,
-            "doctor" => UserResource::make($user),
-            "appointment_pendings" => AppointmentCollection::make($appointment_pendings),
-            "appointments" => $appointments->map(function($appointment){
-                return [
-                    "id" => $appointment->id,
-                    "patient" => [
-                        "id" => $appointment->patient->id,
-                        "full_name" => $appointment->patient->name . ' ' .$appointment->patient->surname,
-                        "avatar" => $appointment->patient->avatar ? env("APP_URL")."storage/".$appointment->patient->avatar : 'https://cdn-icons-png.flaticon.com/512/1430/1430453.png',
-                    ],
-                    "doctor" => [
-                        "id" => $appointment->doctor->id,
-                        "full_name" => $appointment->doctor->name . ' ' .$appointment->doctor->surname,
-                        "avatar" => $appointment->doctor->avatar ? env("APP_URL")."storage/".$appointment->doctor->avatar : NULL,
-                    ],
-                    "date_appointment" => $appointment->date_appointment,
-                    "date_appointment_format" => Carbon::parse($appointment->date_appointment)->format("d M Y"),
-                    "format_hour_start" => Carbon::parse(date("Y-m-d").' '.$appointment->doctor_schedule_join_hour->doctor_schedule_hour->hour_start)->format("h:i A"),
-                    "format_hour_end" => Carbon::parse(date("Y-m-d").' '.$appointment->doctor_schedule_join_hour->doctor_schedule_hour->hour_end)->format("h:i A"),
-                    "appointment_attention" => $appointment->attention ? [
-                        "id" => $appointment->attention->id,
-                        "description" => $appointment->attention->description,
-                        "receta_medica" => $appointment->attention->receta_medica ? json_decode($appointment->attention->receta_medica) : [],
-                        "created_at" => $appointment->attention->created_at->format("Y-m-d h:i A"),
-                    ] : NULL,
-                    "amount" => $appointment->amount,
-                    "status_pay" => $appointment->status_pay,
-                    "status" => $appointment->status,
-                ];
-            }),
-        ]);
+        $cachedRecord = Redis::get('profile_doctor_#'.$id);
+        $data_doctor = [];
+        if(isset($cachedRecord)) {
+            $data_doctor = json_decode($cachedRecord, FALSE);
+        }else{
+            $user = User::findOrFail($id);
+            $num_appointment = Appointment::where("doctor_id",$id)->count();
+            $money_of_appointments = Appointment::where("doctor_id",$id)->sum("amount");
+            $num_appointment_pendings = Appointment::where("doctor_id",$id)->where("status",1)->count();
+    
+            $appointment_pendings = Appointment::where("doctor_id",$id)->where("status",1)->get();
+            $appointments = Appointment::where("doctor_id",$id)->get();
+    
+            $data_doctor = [
+                "num_appointment" => $num_appointment,
+                "money_of_appointments" => $money_of_appointments,
+                "num_appointment_pendings" => $num_appointment_pendings,
+                "doctor" => UserResource::make($user),
+                "appointment_pendings" => AppointmentCollection::make($appointment_pendings),
+                "appointments" => $appointments->map(function($appointment){
+                    return [
+                        "id" => $appointment->id,
+                        "patient" => [
+                            "id" => $appointment->patient->id,
+                            "full_name" => $appointment->patient->name . ' ' .$appointment->patient->surname,
+                            "avatar" => $appointment->patient->avatar ? env("APP_URL")."storage/".$appointment->patient->avatar : 'https://cdn-icons-png.flaticon.com/512/1430/1430453.png',
+                        ],
+                        "doctor" => [
+                            "id" => $appointment->doctor->id,
+                            "full_name" => $appointment->doctor->name . ' ' .$appointment->doctor->surname,
+                            "avatar" => $appointment->doctor->avatar ? env("APP_URL")."storage/".$appointment->doctor->avatar : NULL,
+                        ],
+                        "date_appointment" => $appointment->date_appointment,
+                        "date_appointment_format" => Carbon::parse($appointment->date_appointment)->format("d M Y"),
+                        "format_hour_start" => Carbon::parse(date("Y-m-d").' '.$appointment->doctor_schedule_join_hour->doctor_schedule_hour->hour_start)->format("h:i A"),
+                        "format_hour_end" => Carbon::parse(date("Y-m-d").' '.$appointment->doctor_schedule_join_hour->doctor_schedule_hour->hour_end)->format("h:i A"),
+                        "appointment_attention" => $appointment->attention ? [
+                            "id" => $appointment->attention->id,
+                            "description" => $appointment->attention->description,
+                            "receta_medica" => $appointment->attention->receta_medica ? json_decode($appointment->attention->receta_medica) : [],
+                            "created_at" => $appointment->attention->created_at->format("Y-m-d h:i A"),
+                        ] : NULL,
+                        "amount" => $appointment->amount,
+                        "status_pay" => $appointment->status_pay,
+                        "status" => $appointment->status,
+                    ];
+                }),
+            ];
+            Redis::set('profile_doctor_#'.$id, json_encode($data_doctor),'EX', 3600);
+        }
+
+        return response()->json($data_doctor);
     }
 
     public function config() {
@@ -225,6 +236,10 @@ class DoctorsController extends Controller
         $request->request->add(["birth_date" => Carbon::parse($date_clean)->format("Y-m-d h:i:s")]);
 
         // $request->request->add(["birth_date" => Carbon::parse($request->birth_date, 'GMT')->format("Y-m-d h:i:s")]);
+        $cachedRecord = Redis::get('profile_doctor_#'.$id);
+        if(isset($cachedRecord)) {
+            Redis::del('profile_doctor_#'.$id);
+        }
         $user->update($request->all());
 
         if($request->role_id != $user->roles()->first()->id){
@@ -367,6 +382,10 @@ class DoctorsController extends Controller
     {
         $user = User::findOrFail($id);
         $user->delete();
+        $cachedRecord = Redis::get('profile_doctor_#'.$id);
+        if(isset($cachedRecord)) {
+            Redis::del('profile_doctor_#'.$id);
+        }
         return response()->json([
             "message" => 200
         ]);
