@@ -22,6 +22,8 @@ class UserResource extends JsonResource
         $days_week["Miercoles"] = "table-success";
         $days_week["Jueves"] = "table-warning";
         $days_week["Viernes"] = "table-info";
+        $days_week["Sábado"] = "table-light";
+        $days_week["Domingo"] = "table-danger";
         $days_name = "";
         foreach ($this->resource->schedule_days as $key => $schedule_day) {
             $days_name .= ($schedule_day->day."-");

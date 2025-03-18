@@ -39,44 +39,100 @@ class AppointmentController extends Controller
     public function config(){
         $hours = [
             [
+                "id" => "01",
+                "name" => "12:00 AM",
+            ],
+            [
+                "id" => "02",
+                "name" => "1:00 AM",
+            ],
+            [
+                "id" => "03",
+                "name" => "2:00 AM",
+            ],
+            [
+                "id" => "04",
+                "name" => "3:00 AM",
+            ],
+            [
+                "id" => "05",
+                "name" => "4:00 AM",
+            ],
+            [
+                "id" => "06",
+                "name" => "5:00 AM",
+            ],
+            [
+                "id" => "07",
+                "name" => "6:00 AM",
+            ],
+            [
                 "id" => "08",
-                "name" => "8:00 AM",
+                "name" => "7:00 AM",
             ],
             [
                 "id" => "09",
-                "name" => "9:00 AM",
+                "name" => "8:00 AM",
             ],
             [
                 "id" => "10",
-                "name" => "10:00 AM",
+                "name" => "9:00 AM",
             ],
             [
                 "id" => "11",
-                "name" => "11:00 AM",
+                "name" => "10:00 AM",
             ],
             [
                 "id" => "12",
-                "name" => "12:00PM",
+                "name" => "11:00 AM",
             ],
             [
                 "id" => "13",
-                "name" => "01:00 PM",
+                "name" => "12:00 PM",
             ],
             [
                 "id" => "14",
-                "name" => "02:00 PM",
+                "name" => "1:00 PM",
             ],
             [
                 "id" => "15",
-                "name" => "03:00 PM",
+                "name" => "2:00 PM",
             ],
             [
                 "id" => "16",
-                "name" => "04:00 PM",
+                "name" => "3:00 PM",
             ],
             [
                 "id" => "17",
-                "name" => "05:00 PM",
+                "name" => "4:00 PM",
+            ],
+            [
+                "id" => "18",
+                "name" => "5:00 PM",
+            ],
+            [
+                "id" => "19",
+                "name" => "6:00 PM",
+            ],
+            [
+                "id" => "20",
+                "name" => "7:00 PM",
+            ],
+            [
+                "id" => "21",
+                "name" => "8:00 PM",
+            ],
+            [
+                "id" => "22",
+                "name" => "9:00 PM",
+            ],
+            [
+                "id" => "23",
+                "name" => "10:00 PM",
+            ],
+            [
+                "id" => "24",
+                "name" => "11:00 PM",
             ],
         ];
         $specialities = Specialitie::where("state",1)->get();
