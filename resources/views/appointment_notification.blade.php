@@ -148,14 +148,14 @@
 																								<tr>
 																									<td class="title-30 a-center pb-10" style="font-size:30px; line-height:34px; color:#282828; font-family:'PT Sans', Arial, sans-serif; min-width:auto !important; text-align:center; padding-bottom: 10px;">
 																										<multiline>
-																											Hi "{{ $patient["name"] . ' '.$patient["surname"] }}"
+																											Buen dia {{ $patient["name"] . ' '.$patient["surname"] }}
 																										</multiline>
 																									</td>
 																								</tr>
 																								<tr>
 																									<td class="title-36 a-center pb-35" style="font-size:36px; line-height:40px; color:#282828; font-family:'PT Sans', Arial, sans-serif; min-width:auto !important; text-align:center; padding-bottom: 35px;">
 																										<multiline>
-																											<strong>New Message From "Clinica"</strong>
+																											<strong>Mensaje de recordatorio Hospital Regional Coyuca de Catalán</strong>
 																										</multiline>
 																									</td>
 																								</tr>
