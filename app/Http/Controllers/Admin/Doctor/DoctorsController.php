@@ -18,14 +18,19 @@ use App\Models\Doctor\DoctorScheduleHour;
 use App\Http\Resources\User\UserCollection;
 use App\Models\Doctor\DoctorScheduleJoinHour;
 use App\Http\Resources\Appointment\AppointmentCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class DoctorsController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAnyDoctor',Doctor::class);
         $search = $request->search;
 
         $users = User::where(DB::raw("CONCAT(users.name,' ',IFNULL(users.surname,''),' ',users.email)"),"like","%".$search."%")
@@ -44,7 +49,7 @@ class DoctorsController extends Controller
     }
 
     public function profile($id){
-
+        $this->authorize('profileDoctor',Doctor::class);
         $cachedRecord = Redis::get('profile_doctor_#'.$id);
         $data_doctor = [];
         if(isset($cachedRecord)) {
@@ -136,6 +141,7 @@ class DoctorsController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('createDoctor',Doctor::class);
         $schedule_hours = json_decode($request->schedule_hours,1);
 
         $users_is_valid = User::where("email",$request->email)->first();
@@ -194,6 +200,7 @@ class DoctorsController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('viewDoctor',Doctor::class);
         $user = User::findOrFail($id);
 
         return response()->json([
@@ -206,6 +213,7 @@ class DoctorsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('updateDoctor',Doctor::class);
         $schedule_hours = json_decode($request->schedule_hours,1);
         
         $users_is_valid = User::where("id","<>",$id)->where("email",$request->email)->first();
@@ -380,6 +388,7 @@ class DoctorsController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('deleteDoctor',Doctor::class);
         $user = User::findOrFail($id);
         $user->delete();
         $cachedRecord = Redis::get('profile_doctor_#'.$id);

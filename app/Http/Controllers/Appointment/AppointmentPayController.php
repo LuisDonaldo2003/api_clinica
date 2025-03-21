@@ -7,14 +7,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment\Appointment;
 use App\Models\Appointment\AppointmentPay;
 use App\Http\Resources\Appointment\Pay\AppointmentPayCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class AppointmentPayController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny',AppointmentPay::class);
+
         $specialitie_id = $request->specialitie_id;
         $search_doctor = $request->search_doctor;
         $search_patient = $request->search_patient;
@@ -43,6 +49,8 @@ class AppointmentPayController extends Controller
                 "message_text" => "EL MONTO QUE SE QUIERE REGISTRAR SUPERA AL COSTO DE LA CITA MEDICA",
             ]);
         }
+        $this->authorize('addPayment',$apppointment);
+
 
         $appointment_pay = AppointmentPay::create([
             "appointment_id" => $request->appointment_id,
@@ -87,7 +95,7 @@ class AppointmentPayController extends Controller
 
         $old_amount = $appointment_pay->amount;
         $new_amount = $request->amount;
-
+        $this->authorize('view',$appointment_pay);
         // 100
         // 50
         // 30 -> 80
@@ -132,6 +140,7 @@ class AppointmentPayController extends Controller
     public function destroy(string $id)
     {
         $appointment_pay = AppointmentPay::findOrFail($id);
+        $this->authorize('delete',$appointment_pay);
 
         $apppointment = Appointment::findOrFail($appointment_pay->appointment_id);
         $apppointment->update(["status_pay" => 2]);

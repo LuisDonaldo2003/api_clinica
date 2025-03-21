@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Rol\RolesController;
 use App\Http\Controllers\Patient\PatientController;
 use App\Http\Controllers\Admin\Staff\StaffsController;
 use App\Http\Controllers\Admin\Doctor\DoctorsController;
+use App\Http\Controllers\Dashboard\DashboardKpiController;
 use App\Http\Controllers\Admin\Doctor\SpecialityController;
 use App\Http\Controllers\Appointment\AppointmentController;
 use App\Http\Controllers\Appointment\AppointmentPayController;
@@ -53,6 +54,13 @@ Route::group([
 
     Route::resource("appointmet-pay",AppointmentPayController::class);
     Route::resource("appointmet-attention",AppointmentAttentioncontroller::class);
+
+    Route::post("dashboard/admin",[DashboardKpiController::class,"dashboard_admin"]);
+    Route::post("dashboard/admin-year",[DashboardKpiController::class,"dashboard_admin_year"]);
+
+    Route::post("dashboard/doctor",[DashboardKpiController::class,"dashboard_doctor"]);
+    Route::get("dashboard/config",[DashboardKpiController::class,"config"]);
+    Route::post("dashboard/doctor-year",[DashboardKpiController::class,"dashboard_doctor_year"]);
 
 });
 

@@ -19,13 +19,13 @@ class AppointmentPay extends Model
 
     public function setCreatedAtAttribute($value)
     {
-    	date_default_timezone_set('America/Lima');
+    	date_default_timezone_set("America/Mexico_City");
         $this->attributes["created_at"]= Carbon::now();
     }
 
     public function setUpdatedAtAttribute($value)
     {
-    	date_default_timezone_set("America/Lima");
+    	date_default_timezone_set("America/Mexico_City");
         $this->attributes["updated_at"]= Carbon::now();
     }
 }

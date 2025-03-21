@@ -14,6 +14,7 @@ class SpecialityController extends Controller
     public function index(Request $request)
     {
         // QUE EL FILTRO POR NOMBRE DE ROL
+        $this->authorize('viewAny',Specialitie::class);
         $name = $request->search;
 
         $specialities = Specialitie::where("name","like","%".$name."%")->orderBy("id","desc")->get();
@@ -35,6 +36,7 @@ class SpecialityController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create',Specialitie::class);
         $is_specialitie = Specialitie::where("name",$request->name)->first();
 
         if($is_specialitie){
@@ -56,6 +58,7 @@ class SpecialityController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('view',Specialitie::class);
         $specialitie = Specialitie::findOrFail($id);
         return response()->json([
             "id" => $specialitie->id,
@@ -69,6 +72,7 @@ class SpecialityController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('update',Specialitie::class);
         $is_specialitie = Specialitie::where("id","<>",$id)->where("name",$request->name)->first();
 
         if($is_specialitie){
@@ -90,6 +94,7 @@ class SpecialityController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('delete',Specialitie::class);
         $specialitie = Specialitie::findOrFail($id);
         $specialitie->delete();
         return response()->json([

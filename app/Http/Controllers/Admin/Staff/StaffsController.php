@@ -11,17 +11,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\User\UserCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class StaffsController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this ->authorize('viewAny',User::class);
+
         $search = $request->search;
 
-        $users = User::where(DB::raw("CONCAT(users.name,' ',IFNULL(users.surname,''),' ',users.email)"),"like","%".$search."%")
+        $users = User::where(DB::raw("CONCAT(users.name,' ',COALESCE(users.surname,''),' ',users.email)"),"like","%".$search."%")
                         // "name","like","%".$search."%"
                         // ->orWhere("surname","like","%".$search."%")
                         // ->orWhere("email","like","%".$search."%")
@@ -48,7 +53,8 @@ class StaffsController extends Controller
      */
     public function store(Request $request)
     {
-        
+        $this ->authorize('create',User::class);
+
         $users_is_valid = User::where("email",$request->email)->first();
 
         if($users_is_valid){
@@ -87,6 +93,7 @@ class StaffsController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('view',User::class);
         $user = User::findOrFail($id);
 
         return response()->json([
@@ -99,6 +106,8 @@ class StaffsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('update',User::class);
+
         $users_is_valid = User::where("id","<>",$id)->where("email",$request->email)->first();
 
         if($users_is_valid){
@@ -147,6 +156,7 @@ class StaffsController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('delete',User::class);
         $user = User::findOrFail($id);
         if($user->avatar){
             Storage::delete($user->avatar);

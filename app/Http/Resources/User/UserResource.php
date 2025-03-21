@@ -19,7 +19,7 @@ class UserResource extends JsonResource
         $days_week = [];
         $days_week["Lunes"] = "table-primary";
         $days_week["Martes"] = "table-secondary";
-        $days_week["Miercoles"] = "table-success";
+        $days_week["Miércoles"] = "table-success";
         $days_week["Jueves"] = "table-warning";
         $days_week["Viernes"] = "table-info";
         $days_week["Sábado"] = "table-light";

@@ -15,14 +15,20 @@ use App\Models\Appointment\AppointmentPay;
 use App\Models\Doctor\DoctorScheduleJoinHour;
 use App\Http\Resources\Appointment\AppointmentResource;
 use App\Http\Resources\Appointment\AppointmentCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class AppointmentController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny',Appointment::class);
+
         $specialitie_id = $request->specialitie_id;
         $name_doctor = $request->search;
         $date = $request->date;
@@ -143,58 +149,58 @@ class AppointmentController extends Controller
     }
 
     public function filter(Request $request) {
-        
-        $date_appointment = $request->date_appointment;
-        $hour = $request->hour;
-        $specialitie_id = $request->specialitie_id;
+        $this->authorize('filter',Appointment::class);
 
-        date_default_timezone_set('America/Lima');
+        $date_appointment = $request->date_appointment; // Fecha seleccionada por el usuario
+        $hour = $request->hour; // Hora seleccionada por el usuario
+        $specialitie_id = $request->specialitie_id; // Especialidad seleccionada por el usuario
+    
+        date_default_timezone_set("America/Mexico_City");
         Carbon::setLocale('es');
-        DB::statement("SET lc_time_names = 'es_ES'");
-
+    
+        // Obtener el nombre del día (Lunes, Martes, etc.) de la fecha seleccionada
         $name_day = Carbon::parse($date_appointment)->dayName;
-        // CONSULTA PARA SABER QUE DOCTOR CUMPLE CON LA DISPONIBILIDAD DE ATENCIÓN TENIENDO EN
-        //CUENTA EL DIA , HORA Y ESPECIALIDAD
-        $doctor_query = DoctorScheduleDay::where("day","like","%".$name_day."%")
-                                          ->whereHas("doctor",function($q) use($specialitie_id){
-                                            $q->where("specialitie_id",$specialitie_id);
-                                          })->whereHas("schedules_hours",function($q) use($hour) {
-                                            $q->whereHas("doctor_schedule_hour",function($qs) use($hour) {
-                                                $qs->where("hour",$hour);
-                                            });
-                                          })->get();
+    
+        // Consulta para obtener los doctores disponibles en la fecha y hora seleccionadas
+        $doctor_query = DoctorScheduleDay::where("day", "ILIKE", "%".$name_day."%")
+            ->whereHas("doctor", function($q) use($specialitie_id) {
+                $q->where("specialitie_id", $specialitie_id);
+            })
+            ->whereHas("schedules_hours", function($q) use($hour) {
+                $q->whereHas("doctor_schedule_hour", function($qs) use($hour) {
+                    $qs->where("hour", $hour);
+                });
+            })
+            ->get();
+    
         $doctors = collect([]);
-        // ITERAMOS ENTRE LOS DOCTORES QUE RESULTARON DE LA CONSULTA
+    
+        // Iterar sobre los doctores encontrados
         foreach ($doctor_query as $doctor_q) {
-            // REVISAMOS SU DISPONIBILIDAD PARA ARROJAR LOS SEGMENTOS DE LA 
-            // HORA , INTERVALO DE 15 MINUTOS
-            $segments = DoctorScheduleJoinHour::where("doctor_schedule_day_id",$doctor_q->id)
-                                                ->whereHas("doctor_schedule_hour",function($q) use($hour) {
-                                                    $q->where("hour",$hour);
-                                                })->get();
-            // ARMAMOS UNA LISTA DE DOCTORES CON LOS SEGMENTOS DE SU HORA (MARCAMOS CUALES SE ENCUENTRAN OCUPADOS)
+            // Obtener los segmentos de hora disponibles para el doctor
+            $segments = DoctorScheduleJoinHour::where("doctor_schedule_day_id", $doctor_q->id)
+                ->whereHas("doctor_schedule_hour", function($q) use($hour) {
+                    $q->where("hour", $hour);
+                })
+                ->get();
+    
+            // Verificar si los segmentos están ocupados
             $doctors->push([
-                // DATOS DEL DOCTOR
                 "doctor" => [
                     "id" => $doctor_q->doctor->id,
-                    "full_name" => $doctor_q->doctor->name .' '.$doctor_q->doctor->surname,
+                    "full_name" => $doctor_q->doctor->name . ' ' . $doctor_q->doctor->surname,
                     "specialitie" => [
                         "id" => $doctor_q->doctor->specialitie->id,
                         "name" => $doctor_q->doctor->specialitie->name,
                     ],
                 ],
-                // DATOS DEL SEGMENTO EN UN FORMATO PARA EL FRONTEND
-                "segments" => $segments->map(function($segment) use($date_appointment){
-                    // ACA PODEMOS AVERIGUAR SI EL SEGMENTO YA SE ENCUENTRA OCUPADO POR OTRA CITA MEDICA
-                    // where("doctor_schedule_join_hour_id",$segment->id)
-                    // whereHas("doctor_schedule_join_hour",function($q) use($segment){
-                    //     $q->where("doctor_schedule_hour_id",$segment->doctor_schedule_hour->id);  
-                    //   })
-                    $appointment = Appointment::whereHas("doctor_schedule_join_hour",function($q) use($segment){
-                                                    $q->where("doctor_schedule_hour_id",$segment->doctor_schedule_hour_id);  
-                                                })
-                                                ->whereDate("date_appointment",Carbon::parse($date_appointment)->format("Y-m-d"))
-                                                ->first();
+                "segments" => $segments->map(function($segment) use($date_appointment) {
+                    $appointment = Appointment::whereHas("doctor_schedule_join_hour", function($q) use($segment) {
+                            $q->where("doctor_schedule_hour_id", $segment->doctor_schedule_hour_id);  
+                        })
+                        ->whereDate("date_appointment", Carbon::parse($date_appointment)->format("Y-m-d"))
+                        ->first();
+    
                     return [
                         "id" => $segment->id,
                         "doctor_schedule_day_id" => $segment->doctor_schedule_day_id,
@@ -204,16 +210,15 @@ class AppointmentController extends Controller
                             "id" => $segment->doctor_schedule_hour->id,
                             "hour_start" => $segment->doctor_schedule_hour->hour_start,
                             "hour_end" => $segment->doctor_schedule_hour->hour_end,
-                            "format_hour_start" => Carbon::parse(date("Y-m-d").' '.$segment->doctor_schedule_hour->hour_start)->format("h:i A"),
-                            "format_hour_end" => Carbon::parse(date("Y-m-d").' '.$segment->doctor_schedule_hour->hour_end)->format("h:i A"),
+                            "format_hour_start" => Carbon::parse(date("Y-m-d") . ' ' . $segment->doctor_schedule_hour->hour_start)->format("h:i A"),
+                            "format_hour_end" => Carbon::parse(date("Y-m-d") . ' ' . $segment->doctor_schedule_hour->hour_end)->format("h:i A"),
                             "hour" => $segment->doctor_schedule_hour->hour,
                         ]
                     ];
                 })
             ]);
         }
-        // dd($doctors);
-
+    
         return response()->json([
             "doctors" => $doctors,
         ]);
@@ -263,6 +268,8 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create',Appointment::class);
+
         // doctor_id
         // name
         // surname
@@ -330,6 +337,9 @@ class AppointmentController extends Controller
     {
        $appointment = Appointment::findOrFail($id);
 
+       $this->authorize('view',$appointment);
+
+
        return response()->json([
         "appointment" => AppointmentResource::make($appointment)
        ]);
@@ -342,6 +352,7 @@ class AppointmentController extends Controller
     {
         
         $appointment = Appointment::findOrFail($id);
+        $this->authorize('update',$appointment);
         // 50
         // 100 - 200 30
         if($appointment->payments->sum("amount") > $request->amount){
@@ -371,6 +382,7 @@ class AppointmentController extends Controller
     public function destroy(string $id)
     {
         $appointment = Appointment::findOrFail($id);
+        $this->authorize('delete',$appointment);
         $appointment->delete();
        return response()->json([
         "message" => 200,

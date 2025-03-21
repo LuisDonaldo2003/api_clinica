@@ -28,7 +28,7 @@ class AppointmentAttentioncontroller extends Controller
         
         $request->request->add(["receta_medica" => json_encode($request->medical)]);
         if($appointment_attention){
-
+            $this->authorize('view',$appointment_attention);
             if(!$appointment->date_attention){
                 $appointment->update(["status" => 2,
                 "date_attention" => now()]);
@@ -36,8 +36,9 @@ class AppointmentAttentioncontroller extends Controller
 
             $appointment_attention->update($request->all());
         }else{
+            $this->authorize('viewAppointment',$appointment);
             AppointmentAttention::create($request->all());
-            date_default_timezone_set('America/Lima');
+            date_default_timezone_set("America/Mexico_City");
             $appointment->update(["status" => 2,
             "date_attention" => now()]);
         }
@@ -56,7 +57,7 @@ class AppointmentAttentioncontroller extends Controller
         $appointment_attention = $appointment->attention;
 
         if($appointment_attention){
-
+            $this->authorize('view',$appointment_attention);
             return response()->json([
                 "appointment_attention" => [
                     "id" => $appointment_attention->id,

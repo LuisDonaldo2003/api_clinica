@@ -6,14 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class RolesController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Mostrar lista de roles.
      */
     public function index(Request $request)
     {
+        if(!auth('api')->user()->can('list_rol')){
+            return response()->json(["message" => "EL USUARIO NO ESTA AUTORIZADO"],403);
+        }
+
         $name = $request->search;
     
         $roles = Role::where("name", "like", "%" . $name . "%")
@@ -38,6 +46,9 @@ class RolesController extends Controller
      */
     public function show($id)
     {
+        if(!auth('api')->user()->can('edit_rol')){
+            return response()->json(["message" => "EL USUARIO NO ESTA AUTORIZADO"],403);
+        }
         try {
             $role = Role::findOrFail($id);
             return response()->json([
@@ -60,6 +71,9 @@ class RolesController extends Controller
      */
     public function store(Request $request)
     {
+        if(!auth('api')->user()->can('register_rol')){
+            return response()->json(["message" => "EL USUARIO NO ESTA AUTORIZADO"],403);
+        }
         // Validar la entrada
         $request->validate([
             'name' => 'required|string|max:255',
@@ -108,6 +122,9 @@ class RolesController extends Controller
      */
     public function update(Request $request, string $id)
 {
+    if(!auth('api')->user()->can('edit_rol')){
+        return response()->json(["message" => "EL USUARIO NO ESTA AUTORIZADO"],403);
+    }
     $request->validate([
         'name' => 'required|string|max:255|unique:roles,name,' . $id,
         'permissions' => 'array|min:1',
@@ -148,6 +165,9 @@ class RolesController extends Controller
      */
     public function destroy(string $id)
     {
+        if(!auth('api')->user()->can('delete_rol')){
+            return response()->json(["message" => "EL USUARIO NO ESTA AUTORIZADO"],403);
+        }
         try {
             $role = Role::findOrFail($id);
             $role->delete();

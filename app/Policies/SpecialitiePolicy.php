@@ -2,17 +2,18 @@
 
 namespace App\Policies;
 
+use App\Models\Specialitie;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class UserPolicy
+class SpecialitiePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        if($user->can('list_staff')){
+        if($user->can('list_specialty')){
             return true;
         }
         return false;
@@ -23,7 +24,7 @@ class UserPolicy
      */
     public function view(User $user, User $model= null): bool
     {
-        if($user->can('edit_staff')){
+        if($user->can('edit_specialty')){
             return true;
         }
         return false;
@@ -34,7 +35,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        if($user->can('register_staff')){
+        if($user->can('register_specialty')){
             return true;
         }
         return false;
@@ -45,7 +46,7 @@ class UserPolicy
      */
     public function update(User $user, User $model= null): bool
     {
-        if($user->can('edit_staff')){
+        if($user->can('edit_specialty')){
             return true;
         }
         return false;
@@ -56,7 +57,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model= null): bool
     {
-        if($user->can('delete_staff')){
+        if($user->can('delete_specialty')){
             return true;
         }
         return false;
