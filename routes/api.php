@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Doctor\SpecialityController;
 use App\Http\Controllers\Appointment\AppointmentController;
 use App\Http\Controllers\Appointment\AppointmentPayController;
 use App\Http\Controllers\Appointment\AppointmentAttentioncontroller;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,4 +79,6 @@ Route::group([
     Route::post("dashboard/doctor",[DashboardKpiController::class,"dashboard_doctor"]);
     Route::get("dashboard/config",[DashboardKpiController::class,"config"]);
     Route::post("dashboard/doctor-year",[DashboardKpiController::class,"dashboard_doctor_year"]);
+
+    Route::get('profile', [ProfileController::class, 'show']);
 });
