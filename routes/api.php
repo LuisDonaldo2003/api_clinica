@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::group([
- 
+
     // 'middleware' => 'auth:api',
     'prefix' => 'auth',
     // 'middleware' => ['role:admin','permission:publish articles'],
@@ -52,18 +52,18 @@ Route::group([
     Route::get("staffs/config",[StaffsController::class,"config"]);
     Route::post("staffs/{id}",[StaffsController::class,"update"]);
     Route::resource("staffs",StaffsController::class);
-    // 
+    //
     Route::resource("specialities",SpecialityController::class);
-    // 
+    //
     Route::get("doctors/profile/{id}",[DoctorsController::class,"profile"]);
     Route::get("doctors/config",[DoctorsController::class,"config"]);
     Route::post("doctors/{id}",[DoctorsController::class,"update"]);
     Route::resource("doctors",DoctorsController::class);
-    // 
+    //
     Route::get("patients/profile/{id}",[PatientController::class,"profile"]);
     Route::post("patients/{id}",[PatientController::class,"update"]);
     Route::resource("patients",PatientController::class);
-    // 
+    //
     Route::get("appointmet/config",[AppointmentController::class,"config"]);
     Route::get("appointmet/patient",[AppointmentController::class,"query_patient"]);
     Route::post("appointmet/filter",[AppointmentController::class,"filter"]);
@@ -80,5 +80,6 @@ Route::group([
     Route::get("dashboard/config",[DashboardKpiController::class,"config"]);
     Route::post("dashboard/doctor-year",[DashboardKpiController::class,"dashboard_doctor_year"]);
 
+    //
     Route::get('profile', [ProfileController::class, 'show']);
 });
