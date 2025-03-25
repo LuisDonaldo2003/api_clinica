@@ -11,18 +11,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\User\UserCollection;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-
 
 class StaffsController extends Controller
 {
-    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $this ->authorize('viewAny',User::class);
+        $this->authorize('viewAny',User::class);
 
         $search = $request->search;
 
@@ -53,8 +50,7 @@ class StaffsController extends Controller
      */
     public function store(Request $request)
     {
-        $this ->authorize('create',User::class);
-
+        $this->authorize('create',User::class);
         $users_is_valid = User::where("email",$request->email)->first();
 
         if($users_is_valid){
@@ -107,7 +103,6 @@ class StaffsController extends Controller
     public function update(Request $request, string $id)
     {
         $this->authorize('update',User::class);
-
         $users_is_valid = User::where("id","<>",$id)->where("email",$request->email)->first();
 
         if($users_is_valid){
