@@ -19,51 +19,59 @@ class PermissionsDemoSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // create permissions
+            // create permissions
+        Permission::create(['guard_name' => 'api','name' => 'admin_dashboard']);
+        Permission::create(['guard_name' => 'api','name' => 'doctor_dashboard']);
+
+        // Roles y Permisos
         Permission::create(['guard_name' => 'api','name' => 'register_rol']);
         Permission::create(['guard_name' => 'api','name' => 'list_rol']);
         Permission::create(['guard_name' => 'api','name' => 'edit_rol']);
         Permission::create(['guard_name' => 'api','name' => 'delete_rol']);
 
+        // Staff
+        Permission::create(['guard_name' => 'api','name' => 'register_staff']);
+        Permission::create(['guard_name' => 'api','name' => 'list_staff']);
+        Permission::create(['guard_name' => 'api','name' => 'edit_staff']);
+        Permission::create(['guard_name' => 'api','name' => 'delete_staff']);
+
+        // Especialidades
+        Permission::create(['guard_name' => 'api','name' => 'register_specialty']);
+        Permission::create(['guard_name' => 'api','name' => 'list_specialty']);
+        Permission::create(['guard_name' => 'api','name' => 'edit_specialty']);
+        Permission::create(['guard_name' => 'api','name' => 'delete_specialty']);
+
+        // Doctores
         Permission::create(['guard_name' => 'api','name' => 'register_doctor']);
         Permission::create(['guard_name' => 'api','name' => 'list_doctor']);
         Permission::create(['guard_name' => 'api','name' => 'edit_doctor']);
         Permission::create(['guard_name' => 'api','name' => 'delete_doctor']);
         Permission::create(['guard_name' => 'api','name' => 'profile_doctor']);
 
+        // Pacientes
         Permission::create(['guard_name' => 'api','name' => 'register_patient']);
         Permission::create(['guard_name' => 'api','name' => 'list_patient']);
         Permission::create(['guard_name' => 'api','name' => 'edit_patient']);
         Permission::create(['guard_name' => 'api','name' => 'delete_patient']);
         Permission::create(['guard_name' => 'api','name' => 'profile_patient']);
 
-        Permission::create(['guard_name' => 'api','name' => 'register_staff']);
-        Permission::create(['guard_name' => 'api','name' => 'list_staff']);
-        Permission::create(['guard_name' => 'api','name' => 'edit_staff']);
-        Permission::create(['guard_name' => 'api','name' => 'delete_staff']);
-
+        // Citas
         Permission::create(['guard_name' => 'api','name' => 'register_appointment']);
         Permission::create(['guard_name' => 'api','name' => 'list_appointment']);
         Permission::create(['guard_name' => 'api','name' => 'edit_appointment']);
         Permission::create(['guard_name' => 'api','name' => 'delete_appointment']);
+        Permission::create(['guard_name' => 'api','name' => 'attention_appointment']);
 
-        Permission::create(['guard_name' => 'api','name' => 'register_specialty']);
-        Permission::create(['guard_name' => 'api','name' => 'list_specialty']);
-        Permission::create(['guard_name' => 'api','name' => 'edit_specialty']);
-        Permission::create(['guard_name' => 'api','name' => 'delete_specialty']);
-
+        // Pagos
         Permission::create(['guard_name' => 'api','name' => 'show_payment']);
         Permission::create(['guard_name' => 'api','name' => 'edit_payment']);
+        Permission::create(['guard_name' => 'api','name' => 'delete_payment']);
+        Permission::create(['guard_name' => 'api','name' => 'add_payment']);
 
-        Permission::create(['guard_name' => 'api','name' => 'activitie']);
+        // Calendario
         Permission::create(['guard_name' => 'api','name' => 'calendar']);
 
-        Permission::create(['guard_name' => 'api','name' => 'expense_report']);
-        Permission::create(['guard_name' => 'api','name' => 'invoice_report']);
-
-        Permission::create(['guard_name' => 'api','name' => 'settings']);
-
-
+        
         // create roles and assign existing permissions
         // $role1 = Role::create(['guard_name' => 'api','name' => 'writer']);
         // $role1->givePermissionTo('edit articles');
